@@ -1,0 +1,15 @@
+Project Name: Photo Management App
+Project Type: Offline Windows Desktop Application
+Primary Goal: Organize, view, and manage local photo collections.
+
+Technology Stack:
+- Frontend/UI: WPF (Windows Presentation Foundation) with C#
+- Local Data Storage: SQLite
+- Image Processing: .NET imaging libraries
+
+Development Phases:
+- Phase 1: Core Application Structure & Basic File Management (MVP)
+- Phase 2: Enhancements & Advanced Features
+- Phase 3: Performance, Polish & Additional Features
+
+Current Status: Waiting for .NET SDK installation to create the WPF project. UI layout for `MainWindow.xaml` and `MainWindow.xaml.cs` has been outlined.

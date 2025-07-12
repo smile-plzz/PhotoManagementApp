@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "dgSpecHash": "jNuI1jAd2aQ=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\ismai\\OneDrive\\Desktop\\On going\\Software Projects\\Photomgmt\\PhotoManagementApp\\PhotoManagementApp.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\ismai\\.nuget\\packages\\metadataextractor\\2.8.1\\metadataextractor.2.8.1.nupkg.sha512",
+    "C:\\Users\\ismai\\.nuget\\packages\\microsoft.netcore.platforms\\2.1.2\\microsoft.netcore.platforms.2.1.2.nupkg.sha512",
+    "C:\\Users\\ismai\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\4.5.2\\system.runtime.compilerservices.unsafe.4.5.2.nupkg.sha512",
+    "C:\\Users\\ismai\\.nuget\\packages\\system.text.encoding.codepages\\4.5.1\\system.text.encoding.codepages.4.5.1.nupkg.sha512",
+    "C:\\Users\\ismai\\.nuget\\packages\\xmpcore\\6.1.10.1\\xmpcore.6.1.10.1.nupkg.sha512"
+  ],
+  "logs": []
+}
