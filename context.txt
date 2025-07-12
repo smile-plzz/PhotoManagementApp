@@ -1,15 +1,15 @@
 Project Name: Photo Management App
-Project Type: Offline Windows Desktop Application
-Primary Goal: Organize, view, and manage local photo collections.
+Project Type: Offline Cross-Platform Desktop Application
+Primary Goal: Organize, view, and manage local photo collections efficiently.
 
 Technology Stack:
-- Frontend/UI: WPF (Windows Presentation Foundation) with C#
-- Local Data Storage: SQLite
-- Image Processing: .NET imaging libraries
+- UI Framework: Avalonia UI (C#)
+- Local Data Storage: To be determined
+- Image Processing: To be determined
 
 Development Phases:
-- Phase 1: Core Application Structure & Basic File Management (MVP)
-- Phase 2: Enhancements & Advanced Features
-- Phase 3: Performance, Polish & Additional Features
+- Phase 1: Avalonia Project Setup & Basic UI (MVP)
+- Phase 2: Core Features Implementation
+- Phase 3: Advanced Features & Optimization
 
-Current Status: Waiting for .NET SDK installation to create the WPF project. UI layout for `MainWindow.xaml` and `MainWindow.xaml.cs` has been outlined.
+Current Status: Switching to Avalonia UI. Starting project scaffolding.

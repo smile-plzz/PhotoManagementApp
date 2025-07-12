@@ -1,24 +1,22 @@
-# Photo Management App
+# Photo Management App (Avalonia UI)
 
-This is an offline Windows Photo Management Application designed to help users organize, view, and manage their local photo collections efficiently. The application aims to provide robust features for local storage management, metadata handling, tagging, and advanced viewing options without relying on cloud services.
+This is an offline Photo Management Application being developed using Avalonia UI, a cross-platform UI framework for .NET. The goal is to create an efficient and modern application for organizing, viewing, and managing local photo collections.
 
 ## Current Status
 
-**Phase 1: Core Application Structure & Basic File Management (MVP)**
+**Phase 1: Avalonia Project Setup & Basic UI (MVP)**
 
-- **Project Setup**: Pending .NET SDK installation. Once installed, a WPF project will be initialized.
-- **Basic UI Layout**: The initial XAML and C# code-behind for `MainWindow` have been outlined, featuring a three-column layout for folder navigation, photo thumbnails, and a preview/details pane.
+-   **Project Scaffolding**: Initiating project setup for Avalonia UI.
 
 ## Technology Stack
 
-- **Frontend/UI**: WPF (Windows Presentation Foundation) with C#
-- **Local Data Storage**: SQLite (for metadata, tags, albums)
-- **Image Processing**: .NET imaging libraries (e.g., `System.Drawing.Imaging`, potentially `ImageSharp`)
+-   **UI Framework**: Avalonia UI (C#)
+-   **Local Data Storage**: To be determined (likely SQLite or similar for metadata)
+-   **Image Processing**: To be determined (Avalonia's built-in capabilities, or external libraries)
 
 ## Getting Started
 
-1.  **Install .NET SDK**: Ensure you have the latest .NET SDK installed. Download from [https://aka.ms/dotnet/download](https://aka.ms/dotnet/download).
-2.  **Project Initialization**: Once the SDK is installed, the project will be created.
+Instructions will be provided once the basic project structure is in place.
 
 ## Development Log
 

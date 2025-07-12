@@ -2,41 +2,39 @@
 
 ## 2025-07-12
 
-### Phase 1: Core Application Structure & Basic File Management (MVP)
+### Major Framework Change: Switching to Avalonia UI
 
-- **Project Setup**: WPF project `PhotoManagementApp` successfully created.
-- **Basic UI Layout**: `MainWindow.xaml` and `MainWindow.xaml.cs` updated with initial UI structure.
-- **Build**: Project successfully built after resolving `Application`, `MessageBox`, and `Image` ambiguities.
-- **Documentation**: Created `README.md` and `context.txt` files.
-- **File System Integration**: Added folder selection functionality and basic file listing in `TreeView`. Confirmed working: Folder tree view populates correctly.
-- **Thumbnail Generation & Display**: Implemented logic to identify image files, generate thumbnails, and display them in the main content area. Basic image viewing in the preview/details pane is also implemented. **User feedback: Preview working but still buggy.**
+**Reasoning**: The user has requested a pivot to a more modern and efficient framework, citing the previous WPF approach as not efficient enough. Avalonia UI has been chosen for its cross-platform capabilities, modern architecture, efficiency, and familiarity for C# developers.
 
-### Progress on Bug Fixes, Metadata Extraction & Optimization
+**Implication**: This is a complete rewrite. All previous WPF code and progress are being discarded.
 
-- **MetadataExtractor Integration**: Added `MetadataExtractor` NuGet package.
-- **Improved Image Loading Robustness**: Implemented `FileStream` for image loading to prevent file locking issues.
-- **Implemented EXIF Metadata Extraction**: Logic added to extract and display Date Taken, Camera Model, and Tags (Keywords) using `MetadataExtractor`.
-- **Build Status**: Project built successfully with warnings (related to `System.Windows.Forms` and potential null references in metadata extraction, which are non-blocking).
-- **User Feedback**: Application works, continuing build.
-- **Resolved Warnings**: Addressed `System.Windows.Forms` reference warnings and nullability warnings in metadata extraction. Project now builds with 0 warnings and 0 errors.
-- **Implemented Asynchronous Image Loading**: Modified image loading to use `Task.Run` and `Dispatcher.Invoke` for improved UI responsiveness. Project built successfully.
-- **Fixed "No Preview" Bug**: Implemented `MemoryStream` for `BitmapImage` loading in the preview pane to resolve file locking issues. Confirmed fixed.
+### New High-Level Plan (Avalonia UI):
 
-### Automated Testing
+**Phase 1: Avalonia Project Setup & Basic UI (MVP)**
+1.  **Project Scaffolding**: Create a new Avalonia UI project.
+2.  **Basic UI Layout**: Design the main window with a clean, modern aesthetic, including a folder navigation pane, a main content area for displaying photo thumbnails, and a preview/detail pane.
+3.  **File System Integration**: Implement functionality to allow users to select and browse local directories.
+4.  **Thumbnail Generation & Display**: Efficiently generate and display thumbnails for images.
+5.  **Basic Image Viewing**: Allow users to view full-size images.
 
-- **Setup Test Project**: Created `PhotoManagementApp.Tests` xUnit project and added project reference.
-- **Refactored Filtering Logic**: Extracted image filtering logic into `ImageService.cs` for better testability.
-- **Unit Tests**: Implemented unit tests for `ImageService` (image filtering and file identification). **All tests passed successfully.**
+**Phase 2: Core Features Implementation (Avalonia UI)**
+-   **Metadata Support**: Implement viewing and editing of EXIF/IPTC/XMP metadata.
+-   **Tagging and Rating**: Add custom tags, keywords, and star ratings.
+-   **Search Functionality**: Implement search by filename.
+-   **Sorting and Filtering**: Implement sorting by filename, date, and filtering by year.
+-   **Error Logging**: Integrate a logging mechanism.
 
-### Progress on Refinement and Optimization
+**Phase 3: Advanced Features & Optimization (Avalonia UI)**
+-   **Batch Processing, Duplicate Detection, Import/Export, etc.**
+-   **Performance Optimization**: Fine-tune image loading, rendering, and overall application responsiveness.
+-   **Automated Testing**: Implement unit tests for core logic.
 
-- **Refined Metadata Display**: Improved handling of missing metadata for Tags.
-- **Implemented Basic Sorting**: Added sorting functionality by Filename and Date Taken. Resolved null reference warning in `SortComboBox_SelectionChanged`. Project now builds with 0 warnings and 0 errors.
-- **UI Layout Change (List Review)**: Replaced `WrapPanel` with `ItemsControl` using `UniformGrid` for structured display. Created `ImageData` class for data binding. Project builds with 0 warnings and 0 errors.
+### Current Status:
 
-### Next Steps: UI/Performance Improvements & Bug Fixing
-
-- **Performance Optimization (Image Loading)**: Further optimize thumbnail generation and implement lazy loading.
-- **Error Logging**: Implement a simple logging mechanism.
-- **"Data Year" Feature**: Add grouping/filtering by year.
-- **"Show All Photos"**: Implement a way to reset filters.
+-   **Framework Change Approved**: Initiating project setup for Avalonia UI.
+-   **Avalonia Project Created**: New Avalonia UI project `PhotoManagementApp` successfully created.
+-   **Basic UI Layout Implemented**: `MainWindow.axaml` updated with a three-column layout for folder navigation, photo thumbnails, and a preview/details pane.
+-   **File System Integration (Initial)**: Implemented folder selection using `StorageProvider` and basic `TreeView` population with `FolderItem` ViewModel. All build warnings and errors resolved.
+-   **Thumbnail Generation & Display**: Implemented `ImageItem` ViewModel for lazy loading of thumbnails. `MainWindowViewModel` now populates an `ObservableCollection<ImageItem>`.
+-   **Basic Image Viewing**: `MainWindow.axaml` updated to bind `SelectedImage` to the preview pane.
+-   **Build Status**: Project built successfully with 0 warnings and 0 errors.
