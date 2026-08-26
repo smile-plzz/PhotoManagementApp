@@ -1,0 +1,27 @@
+# .NET
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.runtimeconfig.json
+*.sourcelink.json
+*.props  # AppLogging.props etc generated during build
+
+# IDE
+*.suo
+*.user
+*.userosscache
+*.ide
+.vs/
+.idea/
+*.DS_Store
+
+# Test platform
+coverage/
+*.coverage
+*.coveragexml
+
+# OS
+Thumbs.db
+ehthumbs.db
