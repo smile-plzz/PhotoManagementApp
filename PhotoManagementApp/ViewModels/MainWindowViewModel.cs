@@ -14,6 +14,8 @@ namespace PhotoManagementApp.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
+        private readonly ImageService _imageService = new();
+
         public ObservableCollection<FolderItem> Folders { get; }
         public ObservableCollection<ImageItem> Images { get; }
         public ReactiveCommand<Unit, Unit> SelectFolderCommand { get; }
@@ -53,19 +55,11 @@ namespace PhotoManagementApp.ViewModels
         private void LoadImages(string folderPath)
         {
             Images.Clear();
-            var imageFiles = Directory.GetFiles(folderPath)
-                                    .Where(f => f.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                                                f.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
-                                                f.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
-                                                f.EndsWith(".gif", StringComparison.OrdinalIgnoreCase) ||
-                                                f.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase) ||
-                                                f.EndsWith(".tiff", StringComparison.OrdinalIgnoreCase) ||
-                                                f.EndsWith(".webp", StringComparison.OrdinalIgnoreCase))
-                                    .ToList();
+            var imageFiles = _imageService.GetImageFiles(folderPath);
 
             foreach (var imageFile in imageFiles)
             {
-                Images.Add(new ImageItem(imageFile));
+                Images.Add(new ImageItem(imageFile.FullName));
             }
         }
     }

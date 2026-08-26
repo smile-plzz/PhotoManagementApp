@@ -38,3 +38,40 @@
 -   **Thumbnail Generation & Display**: Implemented `ImageItem` ViewModel for lazy loading of thumbnails. `MainWindowViewModel` now populates an `ObservableCollection<ImageItem>`.
 -   **Basic Image Viewing**: `MainWindow.axaml` updated to bind `SelectedImage` to the preview pane.
 -   **Build Status**: Project built successfully with 0 warnings and 0 errors.
+
+## 2026-08-26
+
+### Phase 1: Extract `ImageService`, unblock test compilation
+
+**Baseline confirmed this session**: `dotnet build` on the app project succeeded
+(0 warnings/errors). `dotnet test` failed to compile — `ImageFilteringTests.cs`
+referenced a non-existent `ImageService` type (CS0246 x4), a forward-looking
+stub the test project shipped with but the app never implemented.
+
+**Change**: Added `PhotoManagementApp/Services/ImageService.cs` (namespace
+`PhotoManagementApp`) with `GetImageFiles(string folderPath)` and
+`FilterImages(IEnumerable<FileInfo>, string searchText)`, matching the
+signatures the existing tests already assumed. Refactored
+`MainWindowViewModel.LoadImages` to call `ImageService.GetImageFiles` instead
+of duplicating the extension-filtering logic inline — this satisfies rule 6
+(business logic must be testable/decoupled from UI code) ahead of building
+more filtering/search features on top of it in Phase 2.
+
+**Result**: `dotnet build` still green, 0 warnings/errors. Test project now
+compiles (CS0246 resolved).
+
+**Blocker found — environment, not code**: `dotnet test` compiles but the
+test run fails at assembly-load time: *"Could not load file or assembly
+'PhotoManagementApp.Tests.dll' ... An Application Control policy has blocked
+this file. (0x800711C7)"*. Root-caused to Windows 11's **Smart App Control**
+being enabled and enforced on this machine
+(`HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy!VerifiedAndReputablePolicyState
+= 1`), which blocks execution/loading of locally-built, unsigned binaries
+that lack Microsoft reputation — including our own freshly-compiled test
+DLL. This is an OS-level security policy, not a project defect, and turning
+it off is a system security change (historically one-way without a Windows
+reinstall on older builds) — flagged to the product owner rather than
+changed unilaterally. Until resolved, test *compilation* can be verified
+each phase, but test *execution* cannot be verified on this machine; CI (a
+clean, non-locked-down runner) should be treated as the actual pass/fail
+source of truth for the "working test suite" ship criterion.
