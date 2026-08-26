@@ -75,3 +75,27 @@ changed unilaterally. Until resolved, test *compilation* can be verified
 each phase, but test *execution* cannot be verified on this machine; CI (a
 clean, non-locked-down runner) should be treated as the actual pass/fail
 source of truth for the "working test suite" ship criterion.
+
+**Update**: confirmed in a later session that `dotnet test` now executes
+successfully (5 tests passing) — the Smart App Control block was transient
+or has since been resolved. Test execution is verified going forward.
+
+### Phase 1: Harden `ImageService.GetImageFiles` against missing/inaccessible folders
+
+**Problem**: `GetImageFiles` called `new DirectoryInfo(folderPath).GetFiles()`
+unguarded — a nonexistent folder path (e.g., a stale path, a removed drive,
+a race between folder-picker and enumeration) threw an unhandled
+`DirectoryNotFoundException`, and a permission-denied folder threw
+`UnauthorizedAccessException`, either of which would crash `LoadImages` in
+`MainWindowViewModel` and take down the UI thread's call chain.
+
+**Change**: `GetImageFiles` now checks `DirectoryInfo.Exists` up front and
+returns an empty list instead of throwing for a missing folder, and wraps
+`GetFiles()` in a try/catch for `UnauthorizedAccessException`/`IOException`,
+also returning an empty list. This is a deliberate "fail soft, don't crash"
+choice for v1 — a toast/notification surface for "folder inaccessible" is a
+UI-layer concern to add later, not blocking this hardening slice.
+
+**Tests**: added `GetImageFiles_ReturnsEmptyListWhenFolderDoesNotExist`.
+
+**Result**: `dotnet build` green (0/0). `dotnet test` green, 6/6 passing.

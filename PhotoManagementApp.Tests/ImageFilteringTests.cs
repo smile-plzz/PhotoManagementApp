@@ -100,5 +100,19 @@ namespace PhotoManagementApp.Tests
             // Clean up
             Directory.Delete(testFolderPath, true);
         }
+
+        [Fact]
+        public void GetImageFiles_ReturnsEmptyListWhenFolderDoesNotExist()
+        {
+            // Arrange
+            var imageService = new ImageService();
+            string missingFolderPath = Path.Combine(Path.GetTempPath(), "DoesNotExist_" + System.Guid.NewGuid());
+
+            // Act
+            var imageFiles = imageService.GetImageFiles(missingFolderPath);
+
+            // Assert
+            Assert.Empty(imageFiles);
+        }
     }
 }

@@ -14,10 +14,27 @@ namespace PhotoManagementApp
 
         public List<FileInfo> GetImageFiles(string folderPath)
         {
-            return new DirectoryInfo(folderPath)
-                .GetFiles()
-                .Where(f => SupportedExtensions.Contains(f.Extension, StringComparer.OrdinalIgnoreCase))
-                .ToList();
+            var directoryInfo = new DirectoryInfo(folderPath);
+            if (!directoryInfo.Exists)
+            {
+                return new List<FileInfo>();
+            }
+
+            try
+            {
+                return directoryInfo
+                    .GetFiles()
+                    .Where(f => SupportedExtensions.Contains(f.Extension, StringComparer.OrdinalIgnoreCase))
+                    .ToList();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new List<FileInfo>();
+            }
+            catch (IOException)
+            {
+                return new List<FileInfo>();
+            }
         }
 
         public List<FileInfo> FilterImages(IEnumerable<FileInfo> imageFiles, string searchText)
