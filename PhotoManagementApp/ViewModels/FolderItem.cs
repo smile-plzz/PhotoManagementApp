@@ -1,59 +1,106 @@
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System; // Added for Exception and UnauthorizedAccessException
+using Avalonia.Threading;
+using ReactiveUI;
 
 namespace PhotoManagementApp.ViewModels
 {
+    /// <summary>
+    /// A folder in the navigation tree. Children are enumerated the first time the
+    /// node is expanded, so adding a drive root does not walk the whole disk.
+    /// </summary>
     public class FolderItem : ViewModelBase
     {
-        public string Name { get; set; }
-        public string FullPath { get; set; }
-        public ObservableCollection<FolderItem> Subfolders { get; set; }
+        private static readonly FolderItem PlaceholderChild = new("Loading...", isPlaceholder: true);
+
+        private bool _childrenLoaded;
+
+        public string Name { get; }
+        public string FullPath { get; }
+        public bool IsPlaceholder { get; }
+        public ObservableCollection<FolderItem> Subfolders { get; }
 
         public FolderItem(DirectoryInfo directoryInfo)
         {
-            Name = directoryInfo.Name;
+            Name = string.IsNullOrEmpty(directoryInfo.Name) ? directoryInfo.FullName : directoryInfo.Name;
             FullPath = directoryInfo.FullName;
-            Subfolders = new ObservableCollection<FolderItem>();
-            // Add a dummy item to allow expansion
-            Subfolders.Add(new FolderItem("Loading..."));
+            IsPlaceholder = false;
+            Subfolders = new ObservableCollection<FolderItem> { PlaceholderChild };
         }
 
-        // Constructor for dummy item
-        private FolderItem(string name)
+        public FolderItem(string path) : this(new DirectoryInfo(path))
+        {
+        }
+
+        private FolderItem(string name, bool isPlaceholder)
         {
             Name = name;
             FullPath = string.Empty;
+            IsPlaceholder = isPlaceholder;
             Subfolders = new ObservableCollection<FolderItem>();
         }
 
-        public async Task LoadSubfolders()
+        private bool _isExpanded;
+        public bool IsExpanded
         {
-            Subfolders.Clear();
-            try
+            get => _isExpanded;
+            set
             {
-                DirectoryInfo directoryInfo = new DirectoryInfo(FullPath);
-                await Task.Run(() =>
+                this.RaiseAndSetIfChanged(ref _isExpanded, value);
+                if (value)
+                    _ = LoadSubfoldersAsync();
+            }
+        }
+
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set => this.RaiseAndSetIfChanged(ref _isSelected, value);
+        }
+
+        /// <summary>
+        /// Populates the child collection from disk. Repeated calls are no-ops,
+        /// and inaccessible folders simply end up with no children rather than
+        /// surfacing an error.
+        /// </summary>
+        public async Task LoadSubfoldersAsync()
+        {
+            if (_childrenLoaded || IsPlaceholder)
+                return;
+            _childrenLoaded = true;
+
+            var children = await Task.Run(() =>
+            {
+                try
                 {
-                    foreach (var subDir in directoryInfo.GetDirectories())
-                    {
-                        if ((subDir.Attributes & FileAttributes.Hidden) == 0) // Exclude hidden directories
-                        {
-                            Subfolders.Add(new FolderItem(subDir));
-                        }
-                    }
-                });
-            }
-            catch (UnauthorizedAccessException)
+                    return new DirectoryInfo(FullPath)
+                        .GetDirectories()
+                        .Where(d => (d.Attributes & FileAttributes.Hidden) == 0)
+                        .Where(d => (d.Attributes & FileAttributes.ReparsePoint) == 0)
+                        .OrderBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase)
+                        .Select(d => new FolderItem(d))
+                        .ToList();
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    return new System.Collections.Generic.List<FolderItem>();
+                }
+                catch (IOException)
+                {
+                    return new System.Collections.Generic.List<FolderItem>();
+                }
+            }).ConfigureAwait(false);
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                // Log or handle access denied
-            }
-            catch (Exception)
-            {
-                // Log other exceptions
-            }
+                Subfolders.Clear();
+                foreach (var child in children)
+                    Subfolders.Add(child);
+            });
         }
     }
 }

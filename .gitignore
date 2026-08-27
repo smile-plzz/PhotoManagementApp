@@ -6,7 +6,8 @@ obj/
 *.pdb
 *.runtimeconfig.json
 *.sourcelink.json
-*.props  # AppLogging.props etc generated during build
+# AppLogging.props etc generated during build
+*.props
 
 # IDE
 *.suo

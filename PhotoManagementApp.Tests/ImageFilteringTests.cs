@@ -8,6 +8,14 @@ namespace PhotoManagementApp.Tests
 {
     public class ImageFilteringTests
     {
+        /// <summary>
+        /// A platform-neutral stand-in folder. These tests never touch disk; they
+        /// only need FileInfo.Name to parse, which a hardcoded Windows path does
+        /// not do when the suite runs on Linux or macOS.
+        /// </summary>
+        private static readonly string TestFolder =
+            Path.Combine(Path.GetTempPath(), "pma-filter-tests");
+
         [Fact]
         public void FilterImages_FiltersByFileNameCorrectly()
         {
@@ -15,10 +23,10 @@ namespace PhotoManagementApp.Tests
             var imageService = new ImageService();
             var imageFiles = new List<FileInfo>
             {
-                new FileInfo("C:\\test\\image1.jpg"),
-                new FileInfo("C:\\test\\another_image.png"),
-                new FileInfo("C:\\test\\my_photo.jpeg"),
-                new FileInfo("C:\\test\\image_final.gif")
+                new FileInfo(Path.Combine(TestFolder, "image1.jpg")),
+                new FileInfo(Path.Combine(TestFolder, "another_image.png")),
+                new FileInfo(Path.Combine(TestFolder, "my_photo.jpeg")),
+                new FileInfo(Path.Combine(TestFolder, "image_final.gif"))
             };
 
             string searchText = "image";
@@ -41,8 +49,8 @@ namespace PhotoManagementApp.Tests
             var imageService = new ImageService();
             var imageFiles = new List<FileInfo>
             {
-                new FileInfo("C:\\test\\image1.jpg"),
-                new FileInfo("C:\\test\\another_image.png")
+                new FileInfo(Path.Combine(TestFolder, "image1.jpg")),
+                new FileInfo(Path.Combine(TestFolder, "another_image.png"))
             };
 
             string searchText = "";
@@ -63,8 +71,8 @@ namespace PhotoManagementApp.Tests
             var imageService = new ImageService();
             var imageFiles = new List<FileInfo>
             {
-                new FileInfo("C:\\test\\image1.jpg"),
-                new FileInfo("C:\\test\\another_image.png")
+                new FileInfo(Path.Combine(TestFolder, "image1.jpg")),
+                new FileInfo(Path.Combine(TestFolder, "another_image.png"))
             };
 
             string searchText = "xyz";

@@ -3,13 +3,17 @@ Project Type: Offline Cross-Platform Desktop Application
 Primary Goal: Organize, view, and manage local photo collections efficiently.
 
 Technology Stack:
-- UI Framework: Avalonia UI (C#)
-- Local Data Storage: To be determined
-- Image Processing: To be determined
+- UI Framework: Avalonia UI (C#) on .NET 9
+- Local Data Storage: SQLite (Microsoft.Data.Sqlite) library index
+- Image Metadata: MetadataExtractor (EXIF / IPTC / XMP)
+- Thumbnails: Avalonia Bitmap.DecodeToWidth + disk-backed JPEG cache
 
 Development Phases:
-- Phase 1: Avalonia Project Setup & Basic UI (MVP)
-- Phase 2: Core Features Implementation
-- Phase 3: Advanced Features & Optimization
+- Phase 1: Avalonia project setup & basic UI (MVP) - COMPLETE
+- Phase 2: Core features - index, metadata, search, filter, sort, tags,
+  ratings, timeline, viewer, duplicates - COMPLETE
+- Phase 3: Advanced features - editing, face recognition, reverse geocoding,
+  albums beyond tags - NOT STARTED
 
-Current Status: Switching to Avalonia UI. Starting project scaffolding.
+Current Status: Library index and gallery UI complete. Build green,
+48/48 tests passing.
