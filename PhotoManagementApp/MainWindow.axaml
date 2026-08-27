@@ -3,71 +3,422 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:PhotoManagementApp.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
+        mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="820"
         x:Class="PhotoManagementApp.MainWindow"
-        Title="Photo Management App"
+        Title="Photo Library"
+        Width="1280" Height="820"
+        MinWidth="900" MinHeight="600"
         x:DataType="vm:MainWindowViewModel">
-    <Design.DataContext>
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/> <!-- Folder Navigation -->
-            <ColumnDefinition Width="*"/>  <!-- Photo Thumbnails -->
-            <ColumnDefinition Width="250"/> <!-- Preview/Details Pane -->
-        </Grid.ColumnDefinitions>
 
-        <!-- Folder Navigation Pane -->
-        <Border Grid.Column="0" BorderBrush="LightGray" BorderThickness="0,0,1,0">
-            <DockPanel Margin="5">
-                <Button Content="Select Folder" DockPanel.Dock="Top" Margin="0,0,0,5" Command="{Binding SelectFolderCommand}"/>
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <TreeView x:Name="FolderTreeView" ItemsSource="{Binding Folders}">
-                        <TreeView.ItemTemplate>
-                            <TreeDataTemplate ItemsSource="{Binding Subfolders}">
-                                <TextBlock Text="{Binding Name}"/>
-                            </TreeDataTemplate>
-                        </TreeView.ItemTemplate>
-                    </TreeView>
-                </ScrollViewer>
-            </DockPanel>
+    <Window.Resources>
+        <SolidColorBrush x:Key="PanelBrush" Color="#12000000"/>
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Button.tool">
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+        </Style>
+        <Style Selector="TextBlock.sectionHeader">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Opacity" Value="0.6"/>
+            <Setter Property="Margin" Value="10,14,10,4"/>
+        </Style>
+        <Style Selector="TextBlock.detailLabel">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Opacity" Value="0.6"/>
+        </Style>
+        <Style Selector="Border.tile">
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="Background" Value="#20808080"/>
+            <Setter Property="ClipToBounds" Value="True"/>
+        </Style>
+        <Style Selector="Border.tile:pointerover">
+            <Setter Property="Background" Value="#40808080"/>
+        </Style>
+    </Window.Styles>
+
+    <DockPanel>
+
+        <!-- ============================ toolbar ============================ -->
+        <Border DockPanel.Dock="Top" Padding="10,8" Background="{DynamicResource PanelBrush}">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Button Classes="tool" Command="{Binding AddFolderCommand}"
+                            ToolTip.Tip="Add a folder of photos to the library">
+                        <TextBlock Text="Add folder"/>
+                    </Button>
+                    <Button Classes="tool" Command="{Binding RescanCommand}"
+                            IsEnabled="{Binding !IsScanning}"
+                            ToolTip.Tip="Look for new and changed photos">
+                        <TextBlock Text="Rescan"/>
+                    </Button>
+                    <Button Classes="tool" Command="{Binding CancelScanCommand}"
+                            IsVisible="{Binding IsScanning}">
+                        <TextBlock Text="Stop"/>
+                    </Button>
+                </StackPanel>
+
+                <TextBlock Grid.Column="1" Text="{Binding ScopeLabel}"
+                           VerticalAlignment="Center" Margin="12,0"
+                           FontWeight="SemiBold" MaxWidth="200" TextTrimming="CharacterEllipsis"/>
+
+                <TextBox Grid.Column="2" Text="{Binding SearchText}"
+                         Watermark="Search photos, folders, cameras, tags"
+                         MinWidth="220" Margin="8,0" VerticalAlignment="Center"/>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0">
+                    <TextBlock Text="Sort" VerticalAlignment="Center" Margin="0,0,6,0" Opacity="0.7"/>
+                    <ComboBox ItemsSource="{Binding SortOptions}"
+                              SelectedIndex="{Binding SortIndex}" MinWidth="130"/>
+                    <ToggleButton IsChecked="{Binding SortDescending}" Margin="6,0,0,0"
+                                  ToolTip.Tip="Toggle ascending / descending">
+                        <TextBlock Text="↓"/>
+                    </ToggleButton>
+                </StackPanel>
+
+                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0">
+                    <RadioButton GroupName="view" Content="Timeline" IsChecked="{Binding ShowTimeline}" Margin="0,0,8,0"/>
+                    <RadioButton GroupName="view" Content="Grid" IsChecked="{Binding ShowGrid}"/>
+                </StackPanel>
+
+                <ComboBox Grid.Column="5" ItemsSource="{Binding ThumbnailSizeOptions}"
+                          SelectedIndex="{Binding ThumbnailSizeIndex}"
+                          MinWidth="90" VerticalAlignment="Center"/>
+            </Grid>
         </Border>
 
-        <!-- Photo Thumbnails Area -->
-        <Border Grid.Column="1" BorderBrush="LightGray" BorderThickness="0,0,1,0">
-            <StackPanel Margin="5">
-                <TextBlock Text="Photos" FontWeight="Bold" Margin="0,0,0,5"/>
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <ListBox ItemsSource="{Binding Images}" SelectedItem="{Binding SelectedImage}">
-                        <ListBox.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel/>
-                            </ItemsPanelTemplate>
-                        </ListBox.ItemsPanel>
+        <!-- ============================ filter bar ============================ -->
+        <Border DockPanel.Dock="Top" Padding="10,6" Background="{DynamicResource PanelBrush}">
+            <StackPanel Orientation="Horizontal" Spacing="14">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Min rating" VerticalAlignment="Center" Margin="0,0,6,0" Opacity="0.7"/>
+                    <ComboBox SelectedIndex="{Binding MinRating}" MinWidth="90">
+                        <ComboBoxItem>Any</ComboBoxItem>
+                        <ComboBoxItem>1+</ComboBoxItem>
+                        <ComboBoxItem>2+</ComboBoxItem>
+                        <ComboBoxItem>3+</ComboBoxItem>
+                        <ComboBoxItem>4+</ComboBoxItem>
+                        <ComboBoxItem>5</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+
+                <CheckBox Content="Favourites" IsChecked="{Binding FavoritesOnly}"/>
+                <CheckBox Content="Has location" IsChecked="{Binding WithLocationOnly}"/>
+                <CheckBox Content="Untagged" IsChecked="{Binding UntaggedOnly}"/>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="From" VerticalAlignment="Center" Margin="0,0,6,0" Opacity="0.7"/>
+                    <DatePicker SelectedDate="{Binding DateFrom}"/>
+                    <TextBlock Text="To" VerticalAlignment="Center" Margin="10,0,6,0" Opacity="0.7"/>
+                    <DatePicker SelectedDate="{Binding DateTo}"/>
+                </StackPanel>
+
+                <Button Command="{Binding ClearFiltersCommand}" Content="Clear filters"/>
+                <TextBlock Text="{Binding ResultSummary}" VerticalAlignment="Center" Opacity="0.7"/>
+                <ProgressBar IsIndeterminate="True" Width="90" Height="4"
+                             VerticalAlignment="Center" IsVisible="{Binding IsBusy}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ============================ status bar ============================ -->
+        <Border DockPanel.Dock="Bottom" Padding="10,6" Background="{DynamicResource PanelBrush}">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" TextTrimming="CharacterEllipsis"/>
+                <ProgressBar Grid.Column="1" IsIndeterminate="True" Width="120" Height="4"
+                             VerticalAlignment="Center" IsVisible="{Binding IsScanning}"/>
+            </Grid>
+        </Border>
+
+        <!-- ============================ sidebar ============================ -->
+        <Border DockPanel.Dock="Left" Width="230" BorderBrush="#30808080" BorderThickness="0,0,1,0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="0,0,0,20">
+
+                    <TextBlock Classes="sectionHeader" Text="LIBRARY"/>
+                    <ListBox ItemsSource="{Binding LibrarySections}"
+                             SelectedItem="{Binding SelectedNavigationItem}"
+                             Background="Transparent" BorderThickness="0">
                         <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Border Width="100" Height="100" BorderBrush="Gray" BorderThickness="1" Margin="2">
-                                    <Image Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
-                                </Border>
+                            <DataTemplate x:DataType="vm:NavigationItem">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <TextBlock Grid.Column="0" Text="{Binding Glyph}" Margin="0,0,8,0"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Label}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding CountDisplay}" Opacity="0.5" FontSize="11"/>
+                                </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                </ScrollViewer>
-            </StackPanel>
+
+                    <TextBlock Classes="sectionHeader" Text="FOLDERS"/>
+                    <TreeView x:Name="FolderTreeView" ItemsSource="{Binding Folders}"
+                              Background="Transparent" BorderThickness="0"
+                              SelectionChanged="OnFolderSelectionChanged">
+                        <TreeView.ItemTemplate>
+                            <TreeDataTemplate x:DataType="vm:FolderItem" ItemsSource="{Binding Subfolders}">
+                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                            </TreeDataTemplate>
+                        </TreeView.ItemTemplate>
+                        <TreeView.Styles>
+                            <Style Selector="TreeViewItem" x:DataType="vm:FolderItem">
+                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                            </Style>
+                        </TreeView.Styles>
+                    </TreeView>
+
+                    <TextBlock Classes="sectionHeader" Text="YEARS"/>
+                    <ListBox ItemsSource="{Binding Years}"
+                             SelectedItem="{Binding SelectedNavigationItem}"
+                             Background="Transparent" BorderThickness="0" MaxHeight="220">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:NavigationItem">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="{Binding Label}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding CountDisplay}" Opacity="0.5" FontSize="11"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <TextBlock Classes="sectionHeader" Text="TAGS"/>
+                    <ListBox ItemsSource="{Binding Tags}"
+                             SelectedItem="{Binding SelectedNavigationItem}"
+                             Background="Transparent" BorderThickness="0" MaxHeight="220">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:NavigationItem">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="{Binding Label}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding CountDisplay}" Opacity="0.5" FontSize="11"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <TextBlock Classes="sectionHeader" Text="CAMERAS"/>
+                    <ListBox ItemsSource="{Binding Cameras}"
+                             SelectedItem="{Binding SelectedNavigationItem}"
+                             Background="Transparent" BorderThickness="0" MaxHeight="200">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:NavigationItem">
+                                <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </ScrollViewer>
         </Border>
 
-        <!-- Preview/Details Pane -->
-        <Border Grid.Column="2">
-            <StackPanel Margin="5">
-                <TextBlock Text="Details" FontWeight="Bold" Margin="0,0,0,5"/>
-                <!-- Placeholder for selected photo preview and metadata -->
-                <Image Source="{Binding SelectedImage.Thumbnail}" Width="200" Height="150" Stretch="Uniform" Margin="0,0,0,10"/>
-                <TextBlock Text="{Binding SelectedImage.FullPath}" Margin="0,2"/>
-                <TextBlock Text="Date Taken: N/A" Margin="0,2"/>
-                <TextBlock Text="Camera: N/A" Margin="0,2"/>
-                <TextBlock Text="Tags: N/A" Margin="0,2"/>
-                <!-- More details will be dynamically loaded here -->
-            </StackPanel>
+        <!-- ============================ details pane ============================ -->
+        <Border DockPanel.Dock="Right" Width="280" BorderBrush="#30808080" BorderThickness="1,0,0,0"
+                IsVisible="{Binding HasSelection}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="12" Spacing="10">
+
+                    <Image Source="{Binding SelectedPhoto.Thumbnail}" MaxHeight="200" Stretch="Uniform"/>
+
+                    <TextBlock Text="{Binding SelectedPhoto.FileName}" FontWeight="SemiBold"
+                               TextWrapping="Wrap"/>
+
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <Button Content="0" Command="{Binding SetRatingCommand}" CommandParameter="0" ToolTip.Tip="Clear rating"/>
+                        <Button Content="1" Command="{Binding SetRatingCommand}" CommandParameter="1"/>
+                        <Button Content="2" Command="{Binding SetRatingCommand}" CommandParameter="2"/>
+                        <Button Content="3" Command="{Binding SetRatingCommand}" CommandParameter="3"/>
+                        <Button Content="4" Command="{Binding SetRatingCommand}" CommandParameter="4"/>
+                        <Button Content="5" Command="{Binding SetRatingCommand}" CommandParameter="5"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Button Content="♥ Favourite" Command="{Binding ToggleFavoriteCommand}"/>
+                        <Button Content="Show in folder" Command="{Binding RevealCommand}"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Button Content="Copy to..." Command="{Binding CopyToFolderCommand}"/>
+                        <Button Content="Open" Command="{Binding OpenExternallyCommand}"/>
+                    </StackPanel>
+
+                    <TextBlock Classes="sectionHeader" Text="TAGS" Margin="0,8,0,4"/>
+                    <ItemsControl ItemsSource="{Binding SelectedPhotoTags}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Border Background="#30808080" CornerRadius="10" Padding="8,3" Margin="0,0,4,4">
+                                    <TextBlock Text="{Binding}" FontSize="11"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Grid.Column="0" Text="{Binding NewTagText}" Watermark="Add a tag"/>
+                        <Button Grid.Column="1" Content="+" Margin="4,0,0,0" Command="{Binding AddTagCommand}"/>
+                    </Grid>
+
+                    <TextBlock Classes="sectionHeader" Text="DETAILS" Margin="0,8,0,4"/>
+                    <ItemsControl ItemsSource="{Binding SelectedDetails}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DetailRow">
+                                <StackPanel Margin="0,0,0,8">
+                                    <TextBlock Classes="detailLabel" Text="{Binding Label}"/>
+                                    <TextBlock Text="{Binding Value}" TextWrapping="Wrap" FontSize="12"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
         </Border>
-    </Grid>
+
+        <!-- ============================ photo area ============================ -->
+        <Panel>
+
+            <!-- empty state -->
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10"
+                        IsVisible="{Binding HasNoPhotos}">
+                <TextBlock Text="Your library is empty" FontSize="20" HorizontalAlignment="Center"/>
+                <TextBlock Text="Add a folder of photos and they will appear here, organised by date."
+                           Opacity="0.7" HorizontalAlignment="Center"/>
+                <Button Content="Add folder" HorizontalAlignment="Center"
+                        Command="{Binding AddFolderCommand}"/>
+            </StackPanel>
+
+            <!-- timeline: virtualised by date group -->
+            <ScrollViewer IsVisible="{Binding IsTimelineView}" VerticalScrollBarVisibility="Auto" Padding="12">
+                <ItemsRepeater ItemsSource="{Binding Groups}">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Orientation="Vertical" Spacing="18"/>
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PhotoGroupViewModel">
+                            <StackPanel>
+                                <Grid ColumnDefinitions="*,Auto" Margin="4,0,4,6">
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Header}" FontSize="15" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding SubHeader}" FontSize="11" Opacity="0.6"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding CountDisplay}"
+                                               Opacity="0.5" FontSize="11" VerticalAlignment="Center"/>
+                                </Grid>
+                                <ItemsControl ItemsSource="{Binding Photos}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:PhotoTileViewModel">
+                                            <Border Classes="tile"
+                                                    Width="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).TileSize}"
+                                                    Height="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).TileSize}"
+                                                    AttachedToVisualTree="OnTileAttached"
+                                                    PointerPressed="OnTilePressed"
+                                                    DoubleTapped="OnTileDoubleTapped"
+                                                    ToolTip.Tip="{Binding Tooltip}">
+                                                <Panel>
+                                                    <Border Background="#25808080" IsVisible="{Binding ShowPlaceholder}"/>
+                                                    <Image Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
+                                                    <Border BorderBrush="#FF3B82F6" BorderThickness="3"
+                                                            CornerRadius="6" IsVisible="{Binding IsSelected}"/>
+                                                    <TextBlock Text="♥" Foreground="#FFE05252" FontSize="14"
+                                                               Margin="6" HorizontalAlignment="Right"
+                                                               VerticalAlignment="Top" IsVisible="{Binding IsFavorite}"/>
+                                                    <TextBlock Text="{Binding RatingDisplay}" Foreground="White"
+                                                               FontSize="12" Margin="6"
+                                                               HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                                               IsVisible="{Binding HasRating}"/>
+                                                </Panel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
+
+            <!-- flat grid: virtualised per tile -->
+            <ScrollViewer IsVisible="{Binding IsGridView}" VerticalScrollBarVisibility="Auto" Padding="12">
+                <ItemsRepeater ItemsSource="{Binding Photos}">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout MinItemWidth="{Binding TileSize}"
+                                           MinItemHeight="{Binding TileSize}"
+                                           MinColumnSpacing="6" MinRowSpacing="6"/>
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PhotoTileViewModel">
+                            <Border Classes="tile"
+                                    AttachedToVisualTree="OnTileAttached"
+                                    PointerPressed="OnTilePressed"
+                                    DoubleTapped="OnTileDoubleTapped"
+                                    ToolTip.Tip="{Binding Tooltip}">
+                                <Panel>
+                                    <Border Background="#25808080" IsVisible="{Binding ShowPlaceholder}"/>
+                                    <Image Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
+                                    <Border BorderBrush="#FF3B82F6" BorderThickness="3"
+                                            CornerRadius="6" IsVisible="{Binding IsSelected}"/>
+                                    <TextBlock Text="♥" Foreground="#FFE05252" FontSize="14"
+                                               Margin="6" HorizontalAlignment="Right"
+                                               VerticalAlignment="Top" IsVisible="{Binding IsFavorite}"/>
+                                    <TextBlock Text="{Binding RatingDisplay}" Foreground="White"
+                                               FontSize="12" Margin="6"
+                                               HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                               IsVisible="{Binding HasRating}"/>
+                                </Panel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
+
+            <!-- duplicates -->
+            <ScrollViewer IsVisible="{Binding IsDuplicatesView}" VerticalScrollBarVisibility="Auto" Padding="12">
+                <ItemsRepeater ItemsSource="{Binding DuplicateGroups}">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Orientation="Vertical" Spacing="16"/>
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PhotoGroupViewModel">
+                            <Border Background="#15808080" CornerRadius="8" Padding="10">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Header}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding SubHeader}" FontSize="11" Opacity="0.6" Margin="0,0,0,8"/>
+                                    <ItemsControl ItemsSource="{Binding Photos}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:PhotoTileViewModel">
+                                                <StackPanel Width="180" Margin="4">
+                                                    <Border Classes="tile" Height="140"
+                                                            AttachedToVisualTree="OnTileAttached"
+                                                            PointerPressed="OnTilePressed"
+                                                            DoubleTapped="OnTileDoubleTapped">
+                                                        <Image Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding FolderPath}" FontSize="10"
+                                                               Opacity="0.7" TextTrimming="CharacterEllipsis"
+                                                               ToolTip.Tip="{Binding FilePath}"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
+        </Panel>
+    </DockPanel>
 </Window>

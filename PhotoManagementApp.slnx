@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="PhotoManagementApp.Tests/PhotoManagementApp.Tests.csproj" />
+  <Project Path="PhotoManagementApp/PhotoManagementApp.csproj" />
+</Solution>

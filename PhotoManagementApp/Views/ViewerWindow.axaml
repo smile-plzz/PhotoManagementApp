@@ -1,0 +1,115 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:PhotoManagementApp.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="750"
+        x:Class="PhotoManagementApp.Views.ViewerWindow"
+        Title="{Binding Title}"
+        Width="1100" Height="750"
+        WindowStartupLocation="CenterOwner"
+        Background="#FF101010"
+        x:DataType="vm:ViewerViewModel">
+
+    <Window.Styles>
+        <Style Selector="Button.viewer">
+            <Setter Property="Background" Value="#30FFFFFF"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.viewer:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#55FFFFFF"/>
+        </Style>
+        <Style Selector="TextBlock.viewerLabel">
+            <Setter Property="Foreground" Value="#AAFFFFFF"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+        <Style Selector="TextBlock.viewerValue">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid>
+        <!-- image surface -->
+        <ScrollViewer x:Name="ImageScroller"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto">
+            <LayoutTransformControl>
+                <LayoutTransformControl.LayoutTransform>
+                    <ScaleTransform ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}"/>
+                </LayoutTransformControl.LayoutTransform>
+                <Image Source="{Binding Image}" Stretch="Uniform"/>
+            </LayoutTransformControl>
+        </ScrollViewer>
+
+        <TextBlock Text="Loading..." Foreground="White" FontSize="16"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   IsVisible="{Binding IsLoading}"/>
+
+        <TextBlock Text="{Binding LoadError}" Foreground="#FFFF8080" FontSize="14"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   TextWrapping="Wrap" MaxWidth="500" TextAlignment="Center"
+                   IsVisible="{Binding HasLoadError}"/>
+
+        <!-- previous / next hit areas -->
+        <Button Classes="viewer" Content="‹" FontSize="28" Width="52" Height="90"
+                HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,0"
+                Command="{Binding PreviousCommand}"/>
+        <Button Classes="viewer" Content="›" FontSize="28" Width="52" Height="90"
+                HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,14,0"
+                Command="{Binding NextCommand}"/>
+
+        <!-- info overlay -->
+        <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="16"
+                Background="#CC000000" CornerRadius="8" Padding="14"
+                MaxWidth="330" IsVisible="{Binding ShowInfo}">
+            <StackPanel Spacing="8">
+                <TextBlock Text="{Binding Title}" Foreground="White"
+                           FontWeight="SemiBold" TextWrapping="Wrap"/>
+                <ItemsControl ItemsSource="{Binding Details}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:DetailRow">
+                            <StackPanel Margin="0,0,0,6">
+                                <TextBlock Classes="viewerLabel" Text="{Binding Label}"/>
+                                <TextBlock Classes="viewerValue" Text="{Binding Value}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- bottom toolbar -->
+        <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,20"
+                Background="#CC000000" CornerRadius="10" Padding="10,8">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="{Binding PositionDisplay}" Foreground="White"
+                           VerticalAlignment="Center" Margin="4,0,10,0"/>
+
+                <Button Classes="viewer" Content="−" Command="{Binding ZoomOutCommand}" ToolTip.Tip="Zoom out"/>
+                <TextBlock Text="{Binding ZoomDisplay}" Foreground="White"
+                           VerticalAlignment="Center" MinWidth="46" TextAlignment="Center"/>
+                <Button Classes="viewer" Content="+" Command="{Binding ZoomInCommand}" ToolTip.Tip="Zoom in"/>
+                <Button Classes="viewer" Content="Fit" Command="{Binding ResetZoomCommand}"/>
+
+                <Rectangle Width="1" Fill="#40FFFFFF" Margin="6,2"/>
+
+                <Button Classes="viewer" Content="1" Command="{Binding SetRatingCommand}" CommandParameter="1"/>
+                <Button Classes="viewer" Content="2" Command="{Binding SetRatingCommand}" CommandParameter="2"/>
+                <Button Classes="viewer" Content="3" Command="{Binding SetRatingCommand}" CommandParameter="3"/>
+                <Button Classes="viewer" Content="4" Command="{Binding SetRatingCommand}" CommandParameter="4"/>
+                <Button Classes="viewer" Content="5" Command="{Binding SetRatingCommand}" CommandParameter="5"/>
+                <Button Classes="viewer" Content="♥" Command="{Binding ToggleFavoriteCommand}"/>
+
+                <Rectangle Width="1" Fill="#40FFFFFF" Margin="6,2"/>
+
+                <Button Classes="viewer" Content="Info" Command="{Binding ToggleInfoCommand}"/>
+                <Button Classes="viewer" Content="Slideshow" Command="{Binding ToggleSlideshowCommand}"/>
+                <Button Classes="viewer" Content="Show in folder" Command="{Binding RevealCommand}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
